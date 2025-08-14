@@ -1,0 +1,33 @@
+<header class="bg-blue-600 text-white p-4 shadow-md">
+    <nav class="flex flex-row justify-between items-center">
+        <div>
+            <a routerLink="/" class="text-xl font-bold hover:text-gray-200 transition-colors">Your App</a>
+        </div>
+
+        <ul class="flex flex-row space-x-6 items-center">
+            <li>
+                <a routerLink="/products/list" class="hover:text-gray-200 transition-colors">Products</a>
+            </li>
+            <li>
+                <a routerLink="/contact" class="hover:text-gray-200 transition-colors">Contact</a>
+            </li>
+
+            <!-- Login link - only show when not logged in -->
+            <li *ngIf="!(isLoggedIn$ | async)">
+                <a routerLink="/login" class="hover:text-gray-200 transition-colors">Login</a>
+            </li>
+
+            <!-- User menu - only show when logged in -->
+            <li *ngIf="isLoggedIn$ | async">
+                <a routerLink="/profile" class="hover:text-gray-200 transition-colors">Profile</a>
+            </li>
+            <li *ngIf="isLoggedIn$ | async">
+                <a routerLink="/add-product" class="hover:text-gray-200 transition-colors">Add Product</a>
+            </li>
+            <li *ngIf="isLoggedIn$ | async">
+                <button (click)="logout()"
+                    class="hover:text-gray-200 transition-colors bg-transparent border-none cursor-pointer">Logout</button>
+            </li>
+        </ul>
+    </nav>
+</header>
