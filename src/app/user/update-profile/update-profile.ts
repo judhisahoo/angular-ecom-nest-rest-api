@@ -12,6 +12,13 @@ import { api, updateProfileSchema } from '../../../lib/api/api';
 import { z } from 'zod';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import {
+  getLocalStorageWithExpiration,
+  setLocalStorageWithExpiration,
+  removeLocalStorageItem,
+} from '../../../lib/helper/storage';
+
+import { loginSuccess } from '../../store/auth/auth.actions';
 
 @Component({
   selector: 'app-update-profile',
@@ -40,93 +47,239 @@ export class UpdateProfileComponent implements OnInit, OnDestroy {
   // Success message
   successMessage: string | null = null;
 
-  // Loading state
+  // Loading states
   isLoading = false;
+  isDataLoading = true;
+  dataLoadedSuccessfully = false;
 
   currentUser$: Observable<User | null>;
   isAuthenticated$: Observable<boolean>;
 
-  // For direct access to user data if needed
+  // For direct access to user data
   currentUser: User | null = null;
 
+  // Debug information
+  debugMessages: string[] = [];
+  loadingSources: string[] = [];
+
   private subscription = new Subscription();
+  private dataLoadAttempted = false;
+  private storeDataReceived = false;
 
   constructor(
     private authService: AuthService,
     private store: Store,
     private router: Router
   ) {
-    // Get user data from NgRx store
     this.currentUser$ = this.store.select(selectCurrentUser);
     this.isAuthenticated$ = this.store.select(selectIsAuthenticated);
+
+    this.addDebugMessage('Component initialized');
   }
 
   ngOnInit(): void {
-    // Check if user is authenticated first
-    this.subscription.add(
-      this.isAuthenticated$.subscribe((isAuthenticated) => {
-        if (!isAuthenticated) {
-          console.log('User not authenticated, redirecting to login');
-          this.router.navigate(['/login']);
-          return;
-        }
-      })
-    );
+    this.addDebugMessage('ngOnInit started');
 
-    // Subscribe to user data for direct access in template
+    // PRIORITY 1: Try to load from storage immediately (synchronous)
+    if (this.loadFromStorageSync()) {
+      this.addDebugMessage(
+        'Data loaded from storage - stopping other attempts'
+      );
+      return;
+    }
+
+    // PRIORITY 2: Subscribe to store but prevent overwriting good data
     this.subscription.add(
       this.currentUser$.subscribe((user) => {
-        console.log('Profile - Current user:', user);
+        this.storeDataReceived = true;
+        this.addDebugMessage(`Store emitted user: ${user ? 'Yes' : 'No'}`);
 
-        if (user) {
-          this.currentUser = user;
-          // Populate the form fields with the current user's data
-          this.populateFormData(user);
-        } else {
-          // If no user data, try to refresh from server
-          this.refreshUserData();
+        // Only use store data if we haven't loaded data yet, or if it's better data
+        if (
+          !this.dataLoadedSuccessfully &&
+          user &&
+          this.hasRequiredFields(user)
+        ) {
+          this.handleUserDataLoaded(user, 'NgRx Store');
+        } else if (!user && !this.dataLoadedSuccessfully) {
+          this.addDebugMessage('Store emitted null/undefined user');
+          // Try other sources after a delay to let store settle
+          setTimeout(() => {
+            if (!this.dataLoadedSuccessfully) {
+              this.tryAlternativeSources();
+            }
+          }, 500);
         }
       })
     );
 
-    // Check token validity and refresh user data if needed
-    this.refreshUserData();
+    // PRIORITY 3: Fallback after delay if nothing worked
+    setTimeout(() => {
+      if (!this.dataLoadedSuccessfully) {
+        this.addDebugMessage('Fallback: No data loaded after 2 seconds');
+        this.tryAlternativeSources();
+      }
+    }, 2000);
   }
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
   }
 
-  /**
-   * Populate form data from user object
-   */
-  private populateFormData(user: User): void {
-    this.formData = {
-      name: user.name || '',
-      email: user.email || '',
-      age: user.age || 0,
-      phone: user.phone || '',
-      dob: user.dob ? this.formatDateForInput(user.dob) : '',
-    };
+  private addDebugMessage(message: string): void {
+    const timestamp = new Date().toLocaleTimeString();
+    this.debugMessages.push(`[${timestamp}] ${message}`);
+    console.log(`[UpdateProfile] ${message}`);
   }
 
-  /**
-   * Refresh user data from server
-   */
-  private refreshUserData(): void {
-    if (this.authService.checkTokenValidity) {
-      try {
-        this.authService.checkTokenValidity();
-      } catch (error) {
-        console.error('Error refreshing user data:', error);
-        this.apiError = 'Failed to load user data';
+  private hasRequiredFields(user: any): boolean {
+    return !!(user && (user.id || user._id || user.userId) && user.email);
+  }
+
+  // PRIORITY 1: Synchronous storage load
+  private loadFromStorageSync(): boolean {
+    this.addDebugMessage('Attempting synchronous storage load...');
+
+    try {
+      const possibleKeys = [
+        'user',
+        'userData',
+        'currentUser',
+        'userProfile',
+        'authUser',
+      ];
+
+      for (const key of possibleKeys) {
+        const userData = getLocalStorageWithExpiration(key);
+        if (userData && this.hasRequiredFields(userData)) {
+          this.addDebugMessage(`✓ Found valid user data in storage: ${key}`);
+          this.handleUserDataLoaded(userData, `Storage (${key})`);
+          return true;
+        } else if (userData) {
+          this.addDebugMessage(`⚠ Found incomplete data in storage: ${key}`);
+        }
       }
+
+      this.addDebugMessage('No valid user data in storage');
+      return false;
+    } catch (error) {
+      this.addDebugMessage(`Storage load error: ${error}`);
+      return false;
     }
   }
 
-  /**
-   * Format date for HTML date input (YYYY-MM-DD)
-   */
+  // PRIORITY 3: Alternative sources
+  private async tryAlternativeSources(): Promise<void> {
+    this.addDebugMessage('Trying alternative data sources...');
+
+    if (this.dataLoadedSuccessfully) {
+      this.addDebugMessage('Data already loaded, skipping alternatives');
+      return;
+    }
+
+    // Try AuthService
+    if (this.authService.getCurrentUser) {
+      try {
+        const user = await this.authService.getCurrentUser();
+        if (user && this.hasRequiredFields(user)) {
+          this.addDebugMessage('✓ Found user data from AuthService');
+          this.handleUserDataLoaded(user, 'AuthService');
+          return;
+        }
+      } catch (error) {
+        this.addDebugMessage(`AuthService error: ${error}`);
+      }
+    }
+
+    // Try token decoding as last resort
+    this.tryTokenDecoding();
+  }
+
+  private tryTokenDecoding(): void {
+    this.addDebugMessage('Trying token decoding as last resort...');
+
+    try {
+      const token =
+        getLocalStorageWithExpiration('token') ||
+        getLocalStorageWithExpiration('authToken');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const mockUser = {
+          id: payload.id || payload.userId || payload.sub,
+          email: payload.email,
+          name: payload.name || '',
+          phone: payload.phone || '',
+          age: payload.age || 0,
+          dob: payload.dob || '',
+        };
+
+        if (this.hasRequiredFields(mockUser)) {
+          this.addDebugMessage('✓ Created user from token');
+          this.handleUserDataLoaded(mockUser, 'Token Decode');
+        }
+      }
+    } catch (error) {
+      this.addDebugMessage(`Token decode error: ${error}`);
+      this.showNoDataError();
+    }
+  }
+
+  private showNoDataError(): void {
+    this.isDataLoading = false;
+    this.apiError =
+      'Unable to load your profile data. Please try logging out and logging back in.';
+  }
+
+  private handleUserDataLoaded(user: any, source: string): void {
+    if (this.dataLoadedSuccessfully) {
+      this.addDebugMessage(`Ignoring data from ${source} - already loaded`);
+      return;
+    }
+
+    this.addDebugMessage(`✓ Loading user data from: ${source}`);
+    this.addDebugMessage(`User ID: ${user.id || user._id || user.userId}`);
+
+    this.currentUser = user;
+    this.dataLoadedSuccessfully = true;
+    this.isDataLoading = false;
+
+    // Populate form with a small delay to ensure DOM is ready
+    setTimeout(() => {
+      this.populateFormData(user);
+    }, 100);
+
+    // Clear any previous errors
+    this.apiError = null;
+    this.loadingSources.push(source);
+  }
+
+  private populateFormData(user: User): void {
+    if (!user) {
+      this.addDebugMessage('Cannot populate form - no user data');
+      return;
+    }
+
+    this.addDebugMessage('Populating form data...');
+
+    try {
+      const newFormData = {
+        name: user.name || '',
+        email: user.email || '',
+        age: user.age || 0,
+        phone: user.phone || '',
+        dob: user.dob ? this.formatDateForInput(user.dob) : '',
+      };
+
+      this.formData = newFormData;
+      this.addDebugMessage(`✓ Form populated successfully`);
+      this.addDebugMessage(
+        `Form data: name=${this.formData.name}, email=${this.formData.email}`
+      );
+    } catch (error) {
+      this.addDebugMessage(`Error populating form: ${error}`);
+    }
+  }
+
   private formatDateForInput(date: string | Date | undefined | null): string {
     if (!date) return '';
 
@@ -134,7 +287,6 @@ export class UpdateProfileComponent implements OnInit, OnDestroy {
       const dateObj = new Date(date);
       if (isNaN(dateObj.getTime())) return '';
 
-      // Format as YYYY-MM-DD for HTML date input
       return dateObj.toISOString().split('T')[0];
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -142,161 +294,144 @@ export class UpdateProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Helper method to format date for display
-   */
-  formatDate(date: string | Date | undefined | null): string {
-    if (!date) return 'N/A';
-
-    try {
-      const dateObj = new Date(date);
-      if (isNaN(dateObj.getTime())) return 'Invalid Date';
-
-      return dateObj.toLocaleDateString();
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Invalid Date';
-    }
-  }
-
-  /**
-   * Helper method to get user initials
-   */
-  getUserInitials(): string {
-    if (!this.currentUser) return 'U';
-
-    if (this.currentUser.name) {
-      const nameParts = this.currentUser.name.split(' ');
-      return nameParts
-        .map((part) => part.charAt(0))
-        .join('')
-        .toUpperCase()
-        .substring(0, 2);
-    } else if (this.currentUser.email) {
-      return this.currentUser.email.charAt(0).toUpperCase();
-    }
-
-    return 'U';
-  }
-
-  /**
-   * Helper method to get full name
-   */
-  getFullName(): string {
-    if (!this.currentUser) return 'User';
-
-    if (this.currentUser.name) {
-      return this.currentUser.name;
-    } else if (this.currentUser.email) {
-      return this.currentUser.email.split('@')[0];
-    }
-
-    return 'User';
-  }
-
-  /**
-   * Helper method to get error message safely
-   */
+  // Helper methods for template
   getErrorMessage(
     field: 'name' | 'email' | 'age' | 'phone' | 'dob'
   ): string | null {
     return this.errors?.[field]?._errors?.[0] || null;
   }
 
-  /**
-   * Helper method to check if field has errors
-   */
   hasError(field: 'name' | 'email' | 'age' | 'phone' | 'dob'): boolean {
     return !!(
       this.errors?.[field]?._errors && this.errors[field]._errors.length > 0
     );
   }
 
-  /**
-   * Clear all messages
-   */
   private clearMessages(): void {
     this.errors = null;
     this.apiError = null;
     this.successMessage = null;
   }
 
-  /**
-   * Handle form submission
-   */
+  // Debug method for template
+  showDebugInfo(): void {
+    console.log('=== DEBUG INFO ===');
+    console.log('Debug Messages:', this.debugMessages);
+    console.log('Current User:', this.currentUser);
+    console.log('Form Data:', this.formData);
+    console.log('Data Loaded Successfully:', this.dataLoadedSuccessfully);
+    console.log('Loading Sources Used:', this.loadingSources);
+    console.log('Store Data Received:', this.storeDataReceived);
+
+    // Check all possible storage keys
+    const allKeys = [
+      'user',
+      'userData',
+      'currentUser',
+      'userProfile',
+      'authUser',
+      'token',
+      'authToken',
+    ];
+    console.log('=== STORAGE CONTENTS ===');
+    allKeys.forEach((key) => {
+      const value = getLocalStorageWithExpiration(key);
+      console.log(`Storage[${key}]:`, value);
+    });
+  }
+
+  // Force reload data (ignoring current state)
+  forceReloadData(): void {
+    this.addDebugMessage('=== FORCE RELOAD INITIATED ===');
+    this.dataLoadedSuccessfully = false;
+    this.isDataLoading = true;
+    this.currentUser = null;
+    this.formData = { name: '', email: '', age: 0, phone: '', dob: '' };
+    this.debugMessages = [];
+
+    // Try storage first
+    if (!this.loadFromStorageSync()) {
+      // Try alternative sources
+      setTimeout(() => {
+        this.tryAlternativeSources();
+      }, 500);
+    }
+  }
+
+  // Add this helper method to your component class
+  private getUserId(user: User | any): string | null {
+    if (!user) return null;
+
+    // Try different possible ID fields
+    return user.id || user._id || user.userId || null;
+  }
+
+  // Replace the problematic getUserId logic in your onSubmit method with this:
+
   async onSubmit(): Promise<void> {
     try {
-      // Clear previous messages and set loading state
       this.clearMessages();
       this.isLoading = true;
+      this.addDebugMessage('Form submission started');
 
-      // Ensure the current user exists before making the API call
-      if (!this.currentUser || !this.currentUser.id) {
-        this.apiError =
-          'User data is not available. Please try refreshing the page. 1111';
-        return;
+      // Validate we have user data
+      if (!this.currentUser) {
+        throw new Error('No user data available for update');
+      } else {
+        console.log('this.currentUser in onsubmit ::', this.currentUser);
       }
-      console.log('kkkk');
 
-      // Validate form data with Zod
+      // Get user ID from various possible sources - FIXED VERSION
+      let userId =
+        this.currentUser.id ||
+        (this.currentUser as any)._id ||
+        (this.currentUser as any).userId;
+
+      if (!userId) {
+        console.error('User object:', this.currentUser);
+        console.error('Available keys:', Object.keys(this.currentUser));
+        throw new Error(
+          `No user ID found. Available keys: ${Object.keys(
+            this.currentUser
+          ).join(', ')}`
+        );
+      }
+
+      this.addDebugMessage(`Using user ID: ${userId}`);
+
+      // Validate form data
       const validatedData = updateProfileSchema.parse(this.formData);
-      console.log('Form validation passed:', validatedData);
+      this.addDebugMessage('Form validation passed');
 
-      // Call the API to update profile
-      const response = await api.auth.updateProfile(
-        this.currentUser.id,
-        validatedData
+      // Make API call
+      const response = await api.auth.updateProfile(userId, validatedData);
+      console.log('response after updateProfile ::', response);
+
+      setLocalStorageWithExpiration('user', response.data.user, 1);
+      const tmpToken = getLocalStorageWithExpiration('token');
+
+      this.store.dispatch(
+        loginSuccess({ user: response.data.user, access_token: tmpToken })
       );
 
-      console.log('Profile update response:', response);
+      this.addDebugMessage('Profile update successful');
 
-      // Show success message
       this.successMessage = 'Profile updated successfully!';
 
-      // Optionally update the store with new user data
-      // You might want to dispatch an action to update the user in the store
-      // this.store.dispatch(updateUserProfile({ user: response.data }));
-
-      // Navigate to profile page after a short delay
+      // Navigate after delay
       setTimeout(() => {
         this.router.navigate(['/profile']);
       }, 2000);
     } catch (error: any) {
-      console.log('catch part');
-      console.error('Profile update error:', error);
+      this.addDebugMessage(`Form submission error: ${error.message}`);
 
       if (error instanceof z.ZodError) {
-        // Handle Zod validation errors
         this.errors = error.format();
-        console.error('Validation errors:', this.errors);
       } else {
-        // Handle API errors
-        if (error.response?.data?.message) {
-          // API returned an error response
-          this.apiError = error.response.data.message;
-        } else if (error.message) {
-          // Handle other errors with message
-          this.apiError = error.message;
-        } else {
-          // Network or other errors
-          this.apiError = 'Unable to connect to server. Please try again.';
-        }
-
-        console.error('API error:', error.response?.data || error.message);
+        this.apiError = error.message || 'An error occurred during update';
       }
     } finally {
-      // Always reset loading state
       this.isLoading = false;
-    }
-  }
-
-  /**
-   * Handle form reset
-   */
-  onReset(): void {
-    if (this.currentUser) {
-      this.populateFormData(this.currentUser);
-      this.clearMessages();
     }
   }
 }

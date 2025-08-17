@@ -47,7 +47,7 @@ export const api = {
     changePassword: (data: z.infer<typeof changePasswordSchema>) =>
       axiosClient.post('/auth/change-password', data),
     updateProfile: (id: string, data: z.infer<typeof updateProfileSchema>) =>
-      axiosClient.post(`/crudusers/${id}`, data),
+      axiosClient.patch(`/crudusers/${id}`, data),
   },
   products: {
     getAll: () => axiosClient.get('/products'),

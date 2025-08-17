@@ -4,16 +4,65 @@
             Update Profile
         </h2>
 
-        <form (ngSubmit)="onSubmit()" #profileForm="ngForm" class="space-y-6">
-            <!-- API Error Message -->
-            <div class="bg-red-50 border border-red-200 rounded-md p-3" *ngIf="apiError">
+        <!-- Debug Section -->
+        <div class="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-medium text-blue-800">Debug Controls:</h3>
+                <div class="flex space-x-2">
+                    <button type="button" (click)="showDebugInfo()"
+                        class="px-2 py-1 text-xs bg-blue-200 text-blue-700 rounded hover:bg-blue-300">
+                        Console Log
+                    </button>
+                    <button type="button" (click)="forceReloadData()"
+                        class="px-2 py-1 text-xs bg-green-200 text-green-700 rounded hover:bg-green-300">
+                        Force Reload
+                    </button>
+                </div>
+            </div>
+
+            <!-- Current Status -->
+            <div class="mt-2 text-xs text-blue-700">
+                <div><strong>Data Loading:</strong> {{ isDataLoading ? 'Yes' : 'No' }}</div>
+                <div><strong>Data Loaded Successfully:</strong> {{ dataLoadedSuccessfully ? 'Yes' : 'No' }}</div>
+                <div><strong>User Found:</strong> {{ currentUser ? 'Yes' : 'No' }}</div>
+                <div><strong>User ID:</strong> {{ currentUser?.id //|| currentUser?.['_id'] || currentUser?.['userId']
+                    ||
+                    'Not Found' }}</div>
+                <div><strong>Form Name:</strong> "{{ formData.name }}"</div>
+                <div><strong>Form Email:</strong> "{{ formData.email }}"</div>
+                <div><strong>Sources Used:</strong> {{ loadingSources.join(', ') || 'None' }}</div>
+            </div>
+
+            <!-- Latest Debug Messages -->
+            <div class="mt-2" *ngIf="debugMessages.length > 0">
+                <details>
+                    <summary class="text-xs font-medium text-blue-800 cursor-pointer">Debug Messages ({{
+                        debugMessages.length }})</summary>
+                    <div class="mt-1 max-h-32 overflow-y-auto">
+                        <div *ngFor="let message of debugMessages.slice(-15)" class="text-xs text-blue-600">
+                            {{ message }}
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="text-center py-8" *ngIf="isDataLoading">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="text-gray-600 mt-2">Loading profile data...</p>
+        </div>
+
+        <!-- Form Section -->
+        <div *ngIf="!isDataLoading">
+            <!-- Error Messages -->
+            <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4" *ngIf="apiError">
                 <div class="flex">
                     <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                            fill="currentColor">
+                        <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                clip-rule="evenodd" />
+                                clip-rule="evenodd"></path>
                         </svg>
                     </div>
                     <div class="ml-3">
@@ -23,14 +72,13 @@
             </div>
 
             <!-- Success Message -->
-            <div class="bg-green-50 border border-green-200 rounded-md p-3" *ngIf="successMessage">
+            <div class="bg-green-50 border border-green-200 rounded-md p-3 mb-4" *ngIf="successMessage">
                 <div class="flex">
                     <div class="flex-shrink-0">
-                        <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                            fill="currentColor">
+                        <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd"
                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                clip-rule="evenodd" />
+                                clip-rule="evenodd"></path>
                         </svg>
                     </div>
                     <div class="ml-3">
@@ -39,101 +87,112 @@
                 </div>
             </div>
 
-            <!-- Name Field -->
-            <div>
-                <label for="name" class="block text-sm font-medium text-gray-700">
-                    Full Name
-                </label>
-                <input id="name" name="name" type="text" required 
-                       [(ngModel)]="formData.name"
-                       [class.border-red-300]="hasError('name')"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
-                       placeholder="Enter your full name" />
-                <p class="mt-1 text-sm text-red-600" *ngIf="hasError('name')">
-                    {{ getErrorMessage('name') }}
-                </p>
+            <!-- Warning if no user data -->
+            <div class="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4" *ngIf="!currentUser">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            No user data loaded. You can still fill the form manually, but update may not work without
+                            user ID.
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Email Field -->
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">
-                    Email Address
-                </label>
-                <input id="email" name="email" type="email" required 
-                       [(ngModel)]="formData.email"
-                       [class.border-red-300]="hasError('email')"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                       placeholder="Enter your email address" />
-                <p class="mt-1 text-sm text-red-600" *ngIf="hasError('email')">
-                    {{ getErrorMessage('email') }}
-                </p>
-            </div>
+            <!-- Form -->
+            <form (ngSubmit)="onSubmit()" #profileForm="ngForm" class="space-y-6">
+                <!-- Name Field -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">
+                        Full Name
+                    </label>
+                    <input id="name" name="name" type="text" required [(ngModel)]="formData.name"
+                        [class.border-red-300]="hasError('name')"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Enter your full name" />
+                    <p class="mt-1 text-sm text-red-600" *ngIf="hasError('name')">
+                        {{ getErrorMessage('name') }}
+                    </p>
+                </div>
 
-            <!-- Phone Field -->
-            <div>
-                <label for="phone" class="block text-sm font-medium text-gray-700">
-                    Phone Number
-                </label>
-                <input id="phone" name="phone" type="tel" required 
-                       [(ngModel)]="formData.phone"
-                       [class.border-red-300]="hasError('phone')"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                       placeholder="Enter your phone number" />
-                <p class="mt-1 text-sm text-red-600" *ngIf="hasError('phone')">
-                    {{ getErrorMessage('phone') }}
-                </p>
-            </div>
+                <!-- Email Field -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">
+                        Email Address
+                    </label>
+                    <input id="email" name="email" type="email" required [(ngModel)]="formData.email"
+                        [class.border-red-300]="hasError('email')"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Enter your email address" />
+                    <p class="mt-1 text-sm text-red-600" *ngIf="hasError('email')">
+                        {{ getErrorMessage('email') }}
+                    </p>
+                </div>
 
-            <!-- Age Field -->
-            <div>
-                <label for="age" class="block text-sm font-medium text-gray-700">
-                    Age
-                </label>
-                <input id="age" name="age" type="number" required min="1" max="120"
-                       [(ngModel)]="formData.age"
-                       [class.border-red-300]="hasError('age')"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                       placeholder="Enter your age" />
-                <p class="mt-1 text-sm text-red-600" *ngIf="hasError('age')">
-                    {{ getErrorMessage('age') }}
-                </p>
-            </div>
+                <!-- Phone Field -->
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700">
+                        Phone Number
+                    </label>
+                    <input id="phone" name="phone" type="tel" required [(ngModel)]="formData.phone"
+                        [class.border-red-300]="hasError('phone')"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Enter your phone number" />
+                    <p class="mt-1 text-sm text-red-600" *ngIf="hasError('phone')">
+                        {{ getErrorMessage('phone') }}
+                    </p>
+                </div>
 
-            <!-- Date of Birth Field -->
-            <div>
-                <label for="dob" class="block text-sm font-medium text-gray-700">
-                    Date of Birth
-                </label>
-                <input id="dob" name="dob" type="date" required 
-                       [(ngModel)]="formData.dob"
-                       [class.border-red-300]="hasError('dob')"
-                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
-                <p class="mt-1 text-sm text-red-600" *ngIf="hasError('dob')">
-                    {{ getErrorMessage('dob') }}
-                </p>
-            </div>
+                <!-- Age Field -->
+                <div>
+                    <label for="age" class="block text-sm font-medium text-gray-700">
+                        Age
+                    </label>
+                    <input id="age" name="age" type="number" required min="1" max="120" [(ngModel)]="formData.age"
+                        [class.border-red-300]="hasError('age')"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Enter your age" />
+                    <p class="mt-1 text-sm text-red-600" *ngIf="hasError('age')">
+                        {{ getErrorMessage('age') }}
+                    </p>
+                </div>
 
-            <!-- Submit Button -->
-            <div>
-                <button type="submit" [disabled]="profileForm.invalid || isLoading"
-                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
-                        fill="none" viewBox="0 0 24 24" *ngIf="isLoading">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                        </circle>
-                        <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                        </path>
-                    </svg>
-                    {{ isLoading ? 'Updating Profile...' : 'Update Profile' }}
-                </button>
-            </div>
-        </form>
+                <!-- Date of Birth Field -->
+                <div>
+                    <label for="dob" class="block text-sm font-medium text-gray-700">
+                        Date of Birth
+                    </label>
+                    <input id="dob" name="dob" type="date" required [(ngModel)]="formData.dob"
+                        [class.border-red-300]="hasError('dob')"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                    <p class="mt-1 text-sm text-red-600" *ngIf="hasError('dob')">
+                        {{ getErrorMessage('dob') }}
+                    </p>
+                </div>
 
-        <!-- Loading State for Initial Data -->
-        <div class="text-center py-4" *ngIf="!currentUser && !apiError">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p class="text-gray-600 mt-2">Loading profile data...</p>
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" [disabled]="profileForm.invalid || isLoading"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24" *ngIf="isLoading">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        {{ isLoading ? 'Updating Profile...' : 'Update Profile' }}
+                    </button>
+                </div>
+            </form>
         </div>
 
         <p class="mt-4 text-center text-sm text-gray-600">

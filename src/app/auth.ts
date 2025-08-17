@@ -67,8 +67,8 @@ export class AuthService {
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
       // Remove token and user data using your custom storage helper
-      removeLocalStorageItem('token');
-      removeLocalStorageItem('user');
+      //removeLocalStorageItem('token');
+      //removeLocalStorageItem('user');
 
       // Update observables
       this._isLoggedIn.next(false);

@@ -40,7 +40,7 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     // Check if user is already authenticated
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/profile']);
     }
   }
 

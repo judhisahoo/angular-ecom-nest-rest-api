@@ -1,14 +1,15 @@
+// src/app/models/user.model.ts
 export interface User {
-  id: string;
+  _id?: string; // MongoDB style ID
+  id?: string; // Alternative ID field
+  userId?: string; // Another alternative ID field
   name: string;
   email: string;
-  age: number;
-  dob: Date;
-  phone: string;
-  status: boolean;
-  // Add other properties of your user object here, as returned by your API.
-  // For example:
-  // role: 'admin' | 'user';
-  createdAt: Date;
-  updatedAt: Date;
+  phone?: string;
+  age?: number;
+  dob?: string | Date;
+  status?: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  __v?: number; // MongoDB version field
 }
