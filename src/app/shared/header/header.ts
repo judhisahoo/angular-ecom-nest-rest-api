@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../auth';
@@ -9,12 +9,15 @@ import { Observable, Subscription } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './header.html',
-  styleUrls: ['./header.css'], // or styleUrl if using single file
+  styleUrls: ['./header.css'],
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   isLoggedIn$: Observable<boolean>;
   currentUser$: Observable<any>;
   private subscription: Subscription = new Subscription();
+
+  // For managing dropdown state if needed
+  isDropdownOpen = false;
 
   constructor(private authService: AuthService, private router: Router) {
     this.isLoggedIn$ = this.authService.isLoggedIn$;
@@ -35,6 +38,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  // Close dropdown when clicking outside (optional enhancement)
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    this.isDropdownOpen = false;
+  }
+
+  toggleDropdown(event: Event): void {
+    event.stopPropagation();
+    this.isDropdownOpen = !this.isDropdownOpen;
   }
 
   logout(): void {

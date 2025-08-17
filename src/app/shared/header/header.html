@@ -19,14 +19,39 @@
 
             <!-- User menu - only show when logged in -->
             <li *ngIf="isLoggedIn$ | async">
-                <a routerLink="/profile" class="hover:text-gray-200 transition-colors">Profile</a>
-            </li>
-            <li *ngIf="isLoggedIn$ | async">
                 <a routerLink="/add-product" class="hover:text-gray-200 transition-colors">Add Product</a>
             </li>
-            <li *ngIf="isLoggedIn$ | async">
-                <button (click)="logout()"
-                    class="hover:text-gray-200 transition-colors bg-transparent border-none cursor-pointer">Logout</button>
+
+            <!-- My Account Dropdown -->
+            <li *ngIf="isLoggedIn$ | async" class="relative group">
+                <button
+                    class="hover:text-gray-200 transition-colors bg-transparent border-none cursor-pointer flex items-center">
+                    My Account
+                    <svg class="ml-1 h-4 w-4 transform transition-transform duration-200 group-hover:rotate-180"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div
+                    class="absolute right-0 mt-2 w-38 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div class="py-1">
+                        <a routerLink="/profile"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+                            Profile
+                        </a>
+                        <a routerLink="/change-password"
+                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+                            Change Password
+                        </a>
+                        <hr class="my-1">
+                        <button (click)="logout()"
+                            class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-800 transition-colors bg-transparent border-none cursor-pointer">
+                            Logout
+                        </button>
+                    </div>
+                </div>
             </li>
         </ul>
     </nav>

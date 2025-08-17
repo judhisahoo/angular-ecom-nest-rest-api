@@ -1,1 +1,118 @@
-<p>profile works!</p>
+<div class="profile-container">
+    <!-- Loading State -->
+    <div *ngIf="!(currentUser$ | async) && !(isAuthenticated$ | async)" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading profile...</p>
+    </div>
+
+    <!-- Not Authenticated State -->
+    <div *ngIf="(isAuthenticated$ | async) === false" class="not-authenticated">
+        <div class="error-message">
+            <h2>Not Authenticated</h2>
+            <p>Please log in to view your profile.</p>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div *ngIf="currentUser$ | async as user" class="profile-content">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                <div class="avatar-circle">
+                    {{ getUserInitials() }}
+                </div>
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name">{{ getFullName() }}</h1>
+                <p class="profile-email" *ngIf="user.email">{{ user.email }}</p>
+            </div>
+        </div>
+
+        <!-- Profile Details -->
+        <div class="profile-details">
+            <div class="detail-section">
+                <h3>Personal Information</h3>
+                <div class="detail-grid">
+                    <div class="detail-item" *ngIf="user.name">
+                        <label>Full Name:</label>
+                        <span>{{ user.name }}</span>
+                    </div>
+
+                    <div class="detail-item" *ngIf="user.email">
+                        <label>Email:</label>
+                        <span>{{ user.email }}</span>
+                    </div>
+
+                    <div class="detail-item" *ngIf="user.phone">
+                        <label>Phone:</label>
+                        <span>{{ user.phone }}</span>
+                    </div>
+
+                    <div class="detail-item" *ngIf="user.dob">
+                        <label>Date of Birth:</label>
+                        <span>{{ formatDate( user.dob) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Information -->
+            <div class="detail-section" *ngIf="user.id || user.createdAt">
+                <h3>Account Information</h3>
+                <div class="detail-grid">
+                    <div class="detail-item" *ngIf="user.id">
+                        <label>User ID:</label>
+                        <span>{{ user.id }}</span>
+                    </div>
+                    <!--
+                    <div class="detail-item" *ngIf="user.role">
+                        <label>Role:</label>
+                        <span class="role-badge">{{ user.role }}</span>
+                    </div>-->
+
+                    <div class="detail-item" *ngIf="user.createdAt">
+                        <label>Member Since:</label>
+                        <span>{{ formatDate(user.createdAt) }}</span>
+                    </div>
+
+                    <div class="detail-item" *ngIf="user.updatedAt">
+                        <label>Last Updated:</label>
+                        <span>{{ formatDate(user.updatedAt) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information
+            <div class="detail-section" *ngIf="user.address || user.company || user.department">
+                <h3>Additional Information</h3>
+                <div class="detail-grid">
+                    <div class="detail-item" *ngIf="user.company">
+                        <label>Company:</label>
+                        <span>{{ user.company }}</span>
+                    </div>
+
+                    <div class="detail-item" *ngIf="user.department">
+                        <label>Department:</label>
+                        <span>{{ user.department }}</span>
+                    </div>
+
+                    <div class="detail-item" *ngIf="user.address">
+                        <label>Address:</label>
+                        <span>{{ user.address }}</span>
+                    </div>
+                </div>
+            </div>-->
+        </div>
+
+        <div class="flex flex-row justify-center">
+            <a routerLink="/edit-profile"
+                class="w-50 flex justify-center py-2 mt-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                Update Profile
+            </a>
+        </div>
+        <!-- Debug Section (remove in production) -->
+        <div class="debug-section" *ngIf="false"> <!-- Set to true for debugging -->
+            <h3>Debug - Raw User Data</h3>
+            <pre></pre>
+        </div>
+    </div>
+</div>

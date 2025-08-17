@@ -12,6 +12,14 @@ export const registerSchema = z.object({
   password: z.string().min(6),
 });
 
+export const updateProfileSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(4),
+  phone: z.string().min(10),
+  age: z.number(),
+  dob: z.string().min(1),
+});
+
 export const forgotPasswordSchema = z.object({
   email: z.string().email(),
 });
@@ -38,6 +46,8 @@ export const api = {
       axiosClient.post('/auth/forgot-password', data),
     changePassword: (data: z.infer<typeof changePasswordSchema>) =>
       axiosClient.post('/auth/change-password', data),
+    updateProfile: (id: string, data: z.infer<typeof updateProfileSchema>) =>
+      axiosClient.post(`/crudusers/${id}`, data),
   },
   products: {
     getAll: () => axiosClient.get('/products'),
