@@ -1,5 +1,5 @@
 import axiosClient from './axios-client';
-import { z } from 'zod';
+import { date, z } from 'zod';
 
 // Zod schemas for validation
 export const loginSchema = z.object({
@@ -7,10 +7,20 @@ export const loginSchema = z.object({
   password: z.string().min(6),
 });
 
-export const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
+export const registerSchema = z
+  .object({
+    name: z.string().min(4),
+    email: z.string().email(),
+    phone: z.string().min(10),
+    age: z.number(),
+    dob: z.string().min(1),
+    password: z.string().min(8),
+    confirmPassword: z.string().min(8),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 export const updateProfileSchema = z.object({
   email: z.string().email(),
@@ -35,13 +45,14 @@ export const productSchema = z.object({
   price: z.number().positive(),
 });
 
+export type RegisterFormInputs = z.infer<typeof registerSchema>;
+
 // API functions
 export const api = {
   auth: {
     login: (data: z.infer<typeof loginSchema>) =>
       axiosClient.post('/auth/login', data),
-    register: (data: z.infer<typeof registerSchema>) =>
-      axiosClient.post('/auth/register', data),
+    register: (data: any) => axiosClient.post('/auth/register', data),
     forgotPassword: (data: z.infer<typeof forgotPasswordSchema>) =>
       axiosClient.post('/auth/forgot-password', data),
     changePassword: (data: z.infer<typeof changePasswordSchema>) =>

@@ -1,1 +1,140 @@
-<p>register works!</p>
+<div class="relative flex items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-xl">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">
+            Register Account
+        </h2>
+
+        <!-- Success Message -->
+        <div class="bg-green-50 border border-green-200 rounded-md p-3 mb-4" *ngIf="successMessage">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-green-700">{{ successMessage }}</p>
+                </div>
+            </div>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-6">
+            <div class="bg-red-50 border border-red-200 rounded-md p-3" *ngIf="apiError">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">{{ apiError }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label for="name" class="block text-sm font-medium text-gray-700">
+                    Name
+                </label>
+                <input id="name" formControlName="name" type="text"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                <p class="mt-1 text-sm text-red-600" *ngIf="getErrorMessage('name')">
+                    {{ getErrorMessage('name') }}
+                </p>
+            </div>
+
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">
+                    Email
+                </label>
+                <input id="email" formControlName="email" type="email"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                <p class="mt-1 text-sm text-red-600" *ngIf="getErrorMessage('email')">
+                    {{ getErrorMessage('email') }}
+                </p>
+            </div>
+
+            <div>
+                <label for="phone" class="block text-sm font-medium text-gray-700">
+                    Phone
+                </label>
+                <input id="phone" formControlName="phone" type="tel"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                <p class="mt-1 text-sm text-red-600" *ngIf="getErrorMessage('phone')">
+                    {{ getErrorMessage('phone') }}
+                </p>
+            </div>
+
+            <div>
+                <label for="age" class="block text-sm font-medium text-gray-700">
+                    Age
+                </label>
+                <input id="age" formControlName="age" type="number"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                <p class="mt-1 text-sm text-red-600" *ngIf="getErrorMessage('age')">
+                    {{ getErrorMessage('age') }}
+                </p>
+            </div>
+
+            <div>
+                <label for="dob" class="block text-sm font-medium text-gray-700">
+                    Date of Birth
+                </label>
+                <input id="dob" formControlName="dob" type="date"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                <p class="mt-1 text-sm text-red-600" *ngIf="getErrorMessage('dob')">
+                    {{ getErrorMessage('dob') }}
+                </p>
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">
+                    Password
+                </label>
+                <input id="password" formControlName="password" type="password"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                <p class="mt-1 text-sm text-red-600" *ngIf="getErrorMessage('password')">
+                    {{ getErrorMessage('password') }}
+                </p>
+            </div>
+
+            <div>
+                <label for="confirmPassword" class="block text-sm font-medium text-gray-700">
+                    Confirm Password
+                </label>
+                <input id="confirmPassword" formControlName="confirmPassword" type="password"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+                <p class="mt-1 text-sm text-red-600" *ngIf="getErrorMessage('confirmPassword')">
+                    {{ getErrorMessage('confirmPassword') }}
+                </p>
+            </div>
+
+            <div>
+                <button type="submit" [disabled]="registerForm.invalid || isLoading"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg"
+                        fill="none" viewBox="0 0 24 24" *ngIf="isLoading">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    {{ isLoading ? 'Registering...' : 'Register' }}
+                </button>
+            </div>
+        </form>
+
+        <p class="mt-4 text-center text-sm text-gray-600">
+            Already have an account?
+            <a routerLink="/login" class="font-medium text-blue-600 hover:text-blue-500">
+                Login here
+            </a>
+        </p>
+    </div>
+</div>
