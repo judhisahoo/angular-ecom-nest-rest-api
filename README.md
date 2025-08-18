@@ -135,3 +135,68 @@ ng g c user/my-account
 ```sh
 npm install @ngrx/store @ngrx/effects @ngrx/entity @ngrx/store-devtools
 ```
+
+#### now time for install jest
+
+```sh
+npm install --save-dev jest jest-preset-angular @types/jest @angular-builders/jest --legacy-peer-deps
+
+npm install @angular/ssr
+
+npm install --save-dev @angular/platform-browser-dynamic @angular/testing --legacy-peer-deps
+npm install --save-dev @angular/core @angular/common @angular/platform-browser --legacy-peer-deps
+
+Remove or rename your setup-jest.ts file if exisats and update your Jest configuration:
+jest.config.js:
+
+module.exports = {
+  preset: 'jest-preset-angular',
+  // Remove or comment out the setupFilesAfterEnv line
+  // setupFilesAfterEnv: ['<rootDir>/setup-jest.ts'],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/dist/',
+  ],
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['html', 'text-summary', 'lcov'],
+  testMatch: ['**/+(*.)+(spec).+(ts)'],
+  transform: {
+    '^.+\\.(ts|js|html)$': 'jest-preset-angular',
+  },
+  moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],
+  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
+};
+
+update the tsconfig.json file as bllow
+
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    // ... your other options
+  }
+}
+
+update tsconfig.spec.json:
+
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": [
+      "jest",
+      "node"
+    ],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "src/**/*.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}
+```

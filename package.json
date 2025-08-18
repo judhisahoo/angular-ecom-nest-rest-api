@@ -6,8 +6,12 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:angular-ecom-nest1": "node dist/angular-ecom-nest1/server/server.mjs"
+    "serve:ssr:angular-ecom-nest1": "node dist/angular-ecom-nest1/server/server.mjs",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:ci": "jest --coverage --watchAll=false --ci",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
   },
   "prettier": {
     "overrides": [
@@ -21,14 +25,11 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/common": "^20.1.0",
     "@angular/compiler": "^20.1.0",
-    "@angular/core": "^20.1.0",
     "@angular/forms": "^20.1.0",
-    "@angular/platform-browser": "^20.1.0",
     "@angular/platform-server": "^20.1.0",
     "@angular/router": "^20.1.0",
-    "@angular/ssr": "^20.1.5",
+    "@angular/ssr": "^20.1.6",
     "@ngrx/effects": "^20.0.0",
     "@ngrx/entity": "^20.0.0",
     "@ngrx/store": "^20.0.0",
@@ -44,18 +45,22 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
+    "@angular-builders/jest": "^20.0.0",
     "@angular/build": "^20.1.5",
     "@angular/cli": "^20.1.5",
+    "@angular/common": "^20.1.7",
     "@angular/compiler-cli": "^20.1.0",
+    "@angular/core": "^20.1.7",
+    "@angular/platform-browser": "^20.1.7",
+    "@angular/platform-browser-dynamic": "^20.1.7",
+    "@angular/testing": "^0.0.0-0",
     "@types/express": "^5.0.1",
-    "@types/jasmine": "~5.1.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.17.19",
-    "jasmine-core": "~5.8.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
+    "jest": "^30.0.0",
+    "jest-environment-jsdom": "^30.0.5",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "~5.8.2"
   }
 }
