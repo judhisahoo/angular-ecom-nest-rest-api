@@ -72,7 +72,6 @@ describe('LoginComponent', () => {
     mockAuthService.isAuthenticated.mockReturnValue(true);
 
     // spy on router.navigate
-    //const router = TestBed.inject(Router);
     const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
     // recreate component so ngOnInit runs again with updated mock
