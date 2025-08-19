@@ -6,7 +6,8 @@
 
         <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="space-y-6">
             <!-- API Error Message -->
-            <div class="bg-red-50 border border-red-200 rounded-md p-3" *ngIf="apiError">
+            @if(apiError){
+            <div class="bg-red-50 border border-red-200 rounded-md p-3">
                 <div class="flex">
                     <div class="flex-shrink-0">
                         <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
@@ -21,6 +22,7 @@
                     </div>
                 </div>
             </div>
+            }
 
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700">

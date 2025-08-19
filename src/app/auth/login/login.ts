@@ -65,7 +65,7 @@ export class LoginComponent implements OnInit {
 
       // Validate form data with Zod
       const validatedData = loginSchema.parse(this.formData);
-      console.log('Form validation passed:', validatedData);
+      //console.log('Form validation passed:', validatedData);
 
       // Call the AuthService login method
       const { user, access_token } = await this.authService.login(
@@ -73,22 +73,23 @@ export class LoginComponent implements OnInit {
         this.formData.password
       );
 
-      console.log('Login successful!');
-      console.log('user data from response :::', user);
-      console.log('access_token data from response :::', access_token);
+      //console.log('Login successful!');
+      //console.log('user data from response :::', user);
+      //console.log('access_token data from response :::', access_token);
 
       // On successful login, dispatch success action
       this.store.dispatch(loginSuccess({ user, access_token }));
+      this.isLoading = false;
 
       // Navigate to dashboard or wherever you want after login
       this.router.navigate(['/profile']);
     } catch (error: any) {
-      console.error('Login error:', error);
-
+      //this.isLoading = false;
+      //console.error('Login error:', error);
       if (error instanceof z.ZodError) {
         // Handle Zod validation errors
         this.errors = error.format();
-        console.error('Validation errors:', this.errors);
+        //console.log('Validation errors:', this.errors);
       } else {
         // Handle API errors
         if (error.response && error.response.data) {
@@ -103,7 +104,7 @@ export class LoginComponent implements OnInit {
           this.apiError = 'Unable to connect to server. Please try again.';
         }
 
-        console.error('API error:', error.response?.data || error.message);
+        //console.log('API error:', error.response?.data || error.message);
       }
     } finally {
       // Always reset loading state
