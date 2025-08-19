@@ -13,17 +13,21 @@
             </li>
 
             <!-- Login link - only show when not logged in -->
-            <li *ngIf="!(isLoggedIn$ | async)">
+            @if(!(isLoggedIn$ | async)){
+            <li>
                 <a routerLink="/login" class="hover:text-gray-200 transition-colors">Login</a>
             </li>
+            }
 
             <!-- User menu - only show when logged in -->
-            <li *ngIf="isLoggedIn$ | async">
+            @if((isLoggedIn$ | async)){
+            <li>
                 <a routerLink="/add-product" class="hover:text-gray-200 transition-colors">Add Product</a>
             </li>
-
+            }
             <!-- My Account Dropdown -->
-            <li *ngIf="isLoggedIn$ | async" class="relative group">
+            @if(isLoggedIn$ | async){
+            <li class="relative group">
                 <button
                     class="hover:text-gray-200 transition-colors bg-transparent border-none cursor-pointer flex items-center">
                     My Account
@@ -53,6 +57,7 @@
                     </div>
                 </div>
             </li>
+            }
         </ul>
     </nav>
 </header>

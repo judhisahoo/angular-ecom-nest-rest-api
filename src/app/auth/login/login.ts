@@ -81,7 +81,7 @@ export class LoginComponent implements OnInit {
       this.store.dispatch(loginSuccess({ user, access_token }));
 
       // Navigate to dashboard or wherever you want after login
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/profile']);
     } catch (error: any) {
       console.error('Login error:', error);
 

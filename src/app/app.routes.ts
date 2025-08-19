@@ -28,6 +28,7 @@ export const routes: Routes = [
       {
         path: 'login',
         component: LoginComponent,
+        title: 'Login Page - Angular App',
       },
       {
         path: 'register',

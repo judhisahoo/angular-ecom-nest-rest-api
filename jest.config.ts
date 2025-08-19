@@ -1,16 +1,23 @@
-module.exports = {
+// jest.config.ts
+import type { Config } from 'jest';
+
+const config: Config = {
   preset: 'jest-preset-angular',
+  testEnvironment: 'jsdom',
   //setupFilesAfterEnv: ['<rootDir>/setup-jest.ts'],
-  testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/dist/'],
-  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts'],
-  coverageDirectory: 'coverage',
-  coverageReporters: ['html', 'text-summary', 'lcov'],
-  testMatch: ['**/+(*.)+(spec).+(ts)'],
+
   transform: {
-    '^.+\\.(ts|js|html)$': 'jest-preset-angular',
+    '^.+\\.(ts|mjs|js|html)$': [
+      'jest-preset-angular',
+      { tsconfig: 'tsconfig.spec.json' },
+    ],
   },
-  moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],
+
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
-  // Remove globalSetup for Angular 16+ as mentioned in the warning
-  // globalSetup: 'jest-preset-angular/global-setup',
+
+  moduleNameMapper: {
+    '^.+\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
 };
+
+export default config;
