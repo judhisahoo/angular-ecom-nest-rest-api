@@ -61,7 +61,7 @@ export const api = {
       axiosClient.patch(`/crudusers/${id}`, data),
   },
   products: {
-    getAll: () => axiosClient.get('/products'),
+    getAll: () => axiosClient.get('/crudproducts'),
     getOne: (id: string) => axiosClient.get(`/products/${id}`),
     create: (data: z.infer<typeof productSchema>) =>
       axiosClient.post('/products', data),

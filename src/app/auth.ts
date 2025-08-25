@@ -18,6 +18,8 @@ export class AuthService {
   private readonly _currentUser = new BehaviorSubject<any>(null);
   readonly currentUser$ = this._currentUser.asObservable();
 
+  redirectURL: string | null = null;
+
   constructor(@Inject(PLATFORM_ID) private platformId: object) {
     if (isPlatformBrowser(this.platformId)) {
       // Check if token exists and is not expired

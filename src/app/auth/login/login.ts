@@ -42,6 +42,8 @@ export class LoginComponent implements OnInit {
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/profile']);
     }
+
+    console.log('auth service redirectURL ::', this.authService.redirectURL);
   }
 
   // Helper method to get error message safely
@@ -81,8 +83,16 @@ export class LoginComponent implements OnInit {
       this.store.dispatch(loginSuccess({ user, access_token }));
       this.isLoading = false;
 
-      // Navigate to dashboard or wherever you want after login
-      this.router.navigate(['/profile']);
+      // After a successful login, check for a redirect URL
+      const url = this.authService.redirectURL;
+      this.authService.redirectURL = null; // Clear the stored URL
+
+      if (url && url !== '/home' && url !== '') {
+        this.router.navigateByUrl(url);
+      } else {
+        // Navigate to dashboard or wherever you want after login
+        this.router.navigate(['/profile']);
+      }
     } catch (error: any) {
       //this.isLoading = false;
       //console.error('Login error:', error);

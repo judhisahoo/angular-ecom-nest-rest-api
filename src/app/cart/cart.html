@@ -1,0 +1,73 @@
+<div class="container mx-auto p-4">
+    <h1 class="text-4xl font-extrabold text-center text-gray-900 mb-8 mt-8">
+        Your Cart
+    </h1>
+
+    @if ((cartItems$ | async)?.length) {
+    <div class="flex flex-col lg:flex-row gap-8">
+        <div class="lg:w-2/3 space-y-6">
+            @for (item of cartItems$ | async; track item.productId) {
+            <div class="flex items-center justify-between bg-white rounded-xl shadow-lg p-4">
+                <div class="flex items-center space-x-4">
+                    <div class="relative w-24 h-24 flex-shrink-4 rounded-lg overflow-hidden">
+                        <img [src]="item.prodImage" alt="{{ item.prodName }}" />
+                    </div>
+                    <div class="flex-1">
+                        <h2 class="text-lg font-bold text-gray-800">
+                            {{ item.prodName }}
+                        </h2>
+                        <p class="text-gray-500">Quantity: {{ item.prodQuantity }}</p>
+                        <p class="text-xl font-bold text-blue-600">
+                            {{ (item.prodPrice * item.prodQuantity) | currency }}
+                        </p>
+                    </div>
+                    <div class="flex-1">
+                        <input class="w-20 border border-gray-300 rounded-md text-center py-1 text-lg" type="number"
+                            [value]="item.prodQuantity" (change)="onQuantityChange(item, $event)" min="1" />
+                    </div>
+                    <button
+                        class="btn-sm py-1 mt-2 text-white font-bold bg-blue-600 rounded-md hover:bg-blue-700 transition-colors duration-200"
+                        (click)="removeCartItem(item.productId)">
+                        Remove
+                    </button>
+                </div>
+            </div>
+            }
+        </div>
+        <div class="lg:w-1/3 bg-white rounded-xl shadow-lg p-6 h-fit">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Order Summary</h2>
+
+            <div class="space-y-2 mb-4">
+                <div class="flex justify-between text-gray-700">
+                    <span>Subtotal</span>
+                    <span>{{ subtotal$ | async | currency }}</span>
+                </div>
+                <div class="flex justify-between text-gray-700">
+                    <span>Shipping</span>
+                    <span>{{ tax$ | async | currency }}</span>
+                </div>
+                <hr class="my-2 border-gray-200" />
+                <div class="flex justify-between text-xl font-bold text-gray-900">
+                    <span>Total</span>
+                    <span>{{ grandTotal$ | async | currency }}</span>
+                </div>
+            </div>
+            <button
+                class="w-full py-3 mt-4 text-white font-bold bg-blue-600 rounded-md hover:bg-blue-700 transition-colors duration-200">
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+    } @else {
+    <div class="flex flex-col items-center justify-center min-h-[50vh] text-gray-500">
+        <p class="text-4xl font-semibold mb-4 py-8">Your cart is empty</p>
+
+        <p>
+            Go back and add some &nbsp;
+            <a [routerLink]="['/products/list']" class="underline font-bold">
+                Products!
+            </a>
+        </p>
+    </div>
+    }
+</div>

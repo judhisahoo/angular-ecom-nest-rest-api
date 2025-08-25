@@ -1,0 +1,27 @@
+<!-- Product Card -->
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <!-- Card Header -->
+    <div class="px-4 py-2 bg-gray-100 font-semibold text-lg text-gray-800">
+        {{product.name | slice:0:17}} {{product.name.length > 17 ? '...' : ''}}
+    </div>
+    <!-- Card Body -->
+    <div class="p-4">
+        <img src="{{product.image}}" alt="Product Image" class="w-full h-40 object-cover mb-4 rounded">
+        <p class="text-gray-700 text-sm mb-2">Price: {{product.price}}</p>
+        <p class="text-gray-700 text-sm">Quantity: {{product.qty}}</p>
+    </div>
+
+    <!-- Card Footer -->
+    <div class="px-2 py-1 bg-gray-50 flex justify-between">
+        @if((checkLoggedIn)){
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm md:py-1 md:px-2 md:text-base"
+            (click)="onEditChild()">Edit</button>
+        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm md:py-1 md:px-2 md:text-base"
+            (click)="onDeleteChild()">Delete</button>
+        }
+        <button class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm md:py-1 md:px-2 md:text-base"
+            (click)="onShowChild()">
+            View
+            Details</button>
+    </div>
+</div>

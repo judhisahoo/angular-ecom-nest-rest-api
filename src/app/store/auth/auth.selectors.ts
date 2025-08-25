@@ -3,6 +3,7 @@ import { AuthState } from './auth.state';
 
 // Feature selector for the auth state
 export const selectAuthState = createFeatureSelector<AuthState>('auth');
+//export const selectAuthState = (state: { auth: AuthState }) => state.auth;
 
 // Selectors for individual properties
 export const selectCurrentUser = createSelector(

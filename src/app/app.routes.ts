@@ -10,9 +10,10 @@ import { UpdateProfileComponent } from './user/update-profile/update-profile';
 import { ChangePasswordComponent } from './user/change-password/change-password';
 import { AddProductComponent } from './products/add-product/add-product';
 import { UpdateProductComponent } from './products/update-product/update-product';
-import { NgModule } from '@angular/core';
 import { HomePageComponent } from './pages/home-page/home-page';
 import { ContactComponent } from './pages/contact/contact';
+import { Details } from './products/details/details';
+import { CartComponent } from './cart/cart';
 
 export const routes: Routes = [
   // Public Routes (Accessible without login)
@@ -50,6 +51,10 @@ export const routes: Routes = [
         path: 'contact',
         component: ContactComponent,
       },
+      {
+        path: 'product-details',
+        component: Details,
+      },
     ],
   },
   // Authenticated Routes (Protected by AuthGuard)
@@ -74,8 +79,12 @@ export const routes: Routes = [
         component: AddProductComponent,
       },
       {
-        path: 'edit-product',
+        path: 'edit-product/:id',
         component: UpdateProductComponent,
+      },
+      {
+        path: 'cart',
+        component: CartComponent,
       },
     ],
   },
